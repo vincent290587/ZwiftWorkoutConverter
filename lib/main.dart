@@ -1,3 +1,8 @@
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:file_picker/file_picker.dart';
+import 'package:file_picker_cross/file_picker_cross.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -49,11 +54,16 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  //int _counter = 0;
   final TextEditingController controller = TextEditingController();
+  String _convertedContent = "Converted workout";
 
   void _printLatestValue() {
-    print('Second text field: ${controller.text}');
+    //print('Second text field: ${controller.text}');
+
+    setState(() {
+      _convertedContent = controller.text;
+    });
   }
 
   @override
@@ -72,14 +82,25 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  void _onConvertPressed() {
+  Future<void> _onConvertPressed() async {
+
+    Uint8List _bytes = Uint8List(3);
+
+    FilePickerCross myFile  = FilePickerCross(_bytes,
+        path: '',
+        type: FileTypeCross.any,
+        fileExtension: 'zwo');
+
+    // for sharing to other apps you can also specify optional `text` and `subject`
+    await myFile.exportToStorage();
+
     setState(() {
       // This call to setState tells the Flutter framework that something has
       // changed in this State, which causes it to rerun the build method below
       // so that the display can reflect the updated values. If we changed
       // _counter without calling setState(), then the build method would not be
       // called again, and so nothing would appear to happen.
-      _counter++;
+      //_counter++;
     });
   }
 
@@ -97,39 +118,51 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: Center(
+      body: Row(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
-        child: Container(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //mainAxisAlignment: MainAxisAlignment.center,
-          width: 1200.0,
-          height: 800.0,
-          child: TextField(
-              textInputAction: TextInputAction.newline,
-              keyboardType: TextInputType.multiline,
-              minLines: null,
-              maxLines: null,  // If this is null, there is no limit to the number of lines, and the text container will start with enough vertical space for one line and automatically grow to accommodate additional lines as they are entered.
-              expands: true,
-              //controller: controller,
-              onChanged: (text) {
-                print('First text field: $text');
-              },
+        children: [
+          Container(
+            // Column is also a layout widget. It takes a list of children and
+            // arranges them vertically. By default, it sizes itself to fit its
+            // children horizontally, and tries to be as tall as its parent.
+            //
+            // Invoke "debug painting" (press "p" in the console, choose the
+            // "Toggle Debug Paint" action from the Flutter Inspector in Android
+            // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
+            // to see the wireframe for each widget.
+            //
+            // Column has various properties to control how it sizes itself and
+            // how it positions its children. Here we use mainAxisAlignment to
+            // center the children vertically; the main axis here is the vertical
+            // axis because Columns are vertical (the cross axis would be
+            // horizontal).
+            //mainAxisAlignment: MainAxisAlignment.center,
+            width: 600.0,
+            height: 800.0,
+            child: TextField(
+                textInputAction: TextInputAction.newline,
+                keyboardType: TextInputType.multiline,
+                minLines: null,
+                maxLines: null,  // If this is null, there is no limit to the number of lines, and the text container will start with enough vertical space for one line and automatically grow to accommodate additional lines as they are entered.
+                expands: true,
+                controller: controller,
+                // onChanged: (text) {
+                //   setState(() {
+                //     _convertedContent = text;
+                //   });
+                // },
+              ),
+          ),
+          VerticalDivider(),
+          Container(
+            width: 600.0,
+            height: 800.0,
+            child: Text(
+              _convertedContent,
             ),
-        ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _onConvertPressed,
