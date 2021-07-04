@@ -6,7 +6,7 @@ class WorkoutConverter {
 
   WorkoutConverter();
 
-  String convertWorkout(String input) {
+  void parseWorkout(String input) {
     String res = '';
     LineSplitter ls = new LineSplitter();
     List<String> lines = ls.convert(input);
@@ -15,13 +15,23 @@ class WorkoutConverter {
 
     int parsed = 0;
     do {
-      List<String> line_pair = lines.sublist(0, 1);
-      parsed = parseLinesPair(line_pair);
+      List<String> linePair = lines.sublist(0, 1);
+      parsed = parseLinesPair(linePair);
       lines.removeAt(0);
       if (parsed == 2) {
         lines.removeAt(0);
       }
     } while (parsed > 0);
+
+    return;
+  }
+
+  String convertToZwift() {
+    String res = '';
+    for (var interval in intervals) {
+
+      res += interval.toZwiftString();
+    }
 
     return res;
   }
