@@ -40,6 +40,18 @@ void main() {
     WorkoutConverter converter = WorkoutConverter();
     expect(converter.extractCadence('5x 1min @ 100rpm, 65% FTP,'), equals(100));
     expect(converter.extractCadence('18x 1min, 65% FTP,'), equals(0));
+    expect(converter.extractCadence('3min @ 90rpm, 65% FTP'), equals(90));
+  });
+
+  group('Power', () {
+    test('Power_single', () {
+      WorkoutConverter converter = WorkoutConverter();
+      expect(converter.extractPower('3min @ 90rpm, 65% FTP'), equals(65));
+    });
+    test('Power_rep', () {
+      WorkoutConverter converter = WorkoutConverter();
+      expect(converter.extractPower('5x 1min @ 100rpm, 65% FTP,'), equals(65));
+    });
   });
 
   test('Ramp', () {

@@ -1,18 +1,22 @@
 import 'dart:convert';
 
 class WorkoutConverter {
+
+  List<Interval> intervals = [];
+
   WorkoutConverter();
 
   String convertWorkout(String input) {
     String res = '';
     LineSplitter ls = new LineSplitter();
     List<String> lines = ls.convert(input);
-    List<String> output = [];
+
+    intervals.clear();
 
     int parsed = 0;
     do {
       List<String> line_pair = lines.sublist(0, 1);
-      parsed = parseLinesPair(line_pair, output);
+      parsed = parseLinesPair(line_pair);
       lines.removeAt(0);
       if (parsed == 2) {
         lines.removeAt(0);
@@ -22,49 +26,61 @@ class WorkoutConverter {
     return res;
   }
 
-  int parseLinesPair(List<String> line_pair, List<String> output) {
+  int parseLinesPair(List<String> line_pair) {
     if (line_pair.isEmpty) {
       return 0;
     }
 
     if (line_pair.first.contains('x')) {
       // intervals
-      String res = addRepetition(line_pair.first);
-      output.add(res);
+      addRepetition(line_pair);
 
       return 2;
     } else {
       // single block
-      String res = addSingleBlock(line_pair.first);
-      output.add(res);
+      addSingleBlock(line_pair.first);
 
       return 1;
     }
   }
 
-  String addRamp(String input) {
-    String res = '';
-    return res;
+  void addRepetition(List<String> line_pair) {
+
+    String input = line_pair.first;
+
+    int reps = extractReps(input);
+    int lapse1 = extractTime(input);
+    int cad1 = extractCadence(input);
+    int power1 = this.extractPower(input);
+
+    input = line_pair.last;
+
+    int lapse2 = extractTime(input);
+    int cad2 = extractCadence(input);
+    int power2 = this.extractPower(input);
+
+    intervals.add(Repetition(reps, [SteadyState(lapse1, power1, cad1), SteadyState(lapse2, power2, cad2)]));
+
+    return;
   }
 
-  String addSingleBlock(String input) {
+  void addSingleBlock(String input) {
     String res = '';
     int lapse = extractTime(input);
+    int cad = extractCadence(input);
 
     if (input.contains('from')) {
 
-      var ramp = addRamp(input);
+      var power = this.parseRamp(input);
+      intervals.add(Ramp(lapse,power,cad));
 
-    } else {
-
+      return;
     }
 
-    return res;
-  }
+    int power = this.extractPower(input);
+    intervals.add(SteadyState(lapse,power,cad));
 
-  String addRepetition(String input) {
-    String res = '';
-    return res;
+    return;
   }
 
   int extractTime(String input_) {
@@ -103,9 +119,21 @@ class WorkoutConverter {
     return 0;
   }
 
+  int extractPower(String input) {
+    if (input.contains('FTP')) {
+      final regex = RegExp(r'^.*,\s([0-9]+)%\sFTP.*$');
+      final match = regex.firstMatch(input);
+
+      final reps = match!.group(1);
+      return int.parse(reps!);
+    }
+
+    return 0;
+  }
+
   int extractCadence(String input) {
-    if (input.contains('x')) {
-      final regex = RegExp(r'^(.*) @\s([0-9]+)rpm, (.*)$');
+    if (input.contains('@')) {
+      final regex = RegExp(r'^(.*) @\s([0-9]+)rpm, .*$');
       final RegExpMatch? match = regex.firstMatch(input);
 
       if (match == null || match.groupCount < 2) {
@@ -140,11 +168,54 @@ class WorkoutConverter {
   }
 }
 
-// class Ramp {
-//
-//   int duration;
-//   int start_power;
-//   int stop_power;
-//   int cadence;
-//
-// }
+abstract class Interval {
+
+  String toZwiftString();
+}
+
+class SteadyState implements Interval {
+
+  int duration;
+  int start_power;
+  int cadence;
+
+  SteadyState(this.duration, this.start_power, this.cadence);
+
+  @override
+  String toZwiftString() {
+    // TODO: implement toZwiftString
+    throw UnimplementedError();
+  }
+}
+
+class Repetition implements Interval {
+
+  List<SteadyState> intervals;
+
+  Repetition(int reps, this.intervals);
+
+  @override
+  String toZwiftString() {
+    // TODO: implement toZwiftString
+    throw UnimplementedError();
+  }
+}
+
+class Ramp implements Interval {
+
+  int duration;
+  late int start_power;
+  late int stop_power;
+  int cadence;
+
+  Ramp(this.duration, List<int> lpower, this.cadence){
+    this.start_power = lpower.elementAt(0);
+    this.stop_power = lpower.elementAt(1);
+  }
+
+  @override
+  String toZwiftString() {
+    // TODO: implement toZwiftString
+    throw UnimplementedError();
+  }
+}
