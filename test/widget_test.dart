@@ -5,26 +5,45 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
 
-import 'package:zwift_converter/main.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:zwift_converter/WorkoutConverter.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(MyApp());
+  group('Getting time', ()
+  {
+    test('Seconds', () {
+      WorkoutConverter converter = WorkoutConverter();
+      expect(converter.extractTime('30sec @ 85rpm, 50% FTP'), equals(30));
+    });
+    test('Minutes', () {
+      WorkoutConverter converter = WorkoutConverter();
+      expect(converter.extractTime('10min from 25 to 75% FTP'), equals(600));
+    });
+    test('Seconds_rep', () {
+      WorkoutConverter converter = WorkoutConverter();
+      expect(converter.extractTime('1x 30sec @ 95rpm, 95% FTP,'), equals(30));
+    });
+    test('Minutes_rep', () {
+      WorkoutConverter converter = WorkoutConverter();
+      expect(converter.extractTime('1x 5min @ 95rpm, 95% FTP,'), equals(300));
+    });
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  test('Get', () {
+    WorkoutConverter converter = WorkoutConverter();
+    expect(converter.extractReps('5x 1min @ 100rpm, 65% FTP,'), equals(5));
+    expect(converter.extractReps('18x 1min, 65% FTP,'), equals(18));
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  test('Cadence', () {
+    WorkoutConverter converter = WorkoutConverter();
+    expect(converter.extractCadence('5x 1min @ 100rpm, 65% FTP,'), equals(100));
+    expect(converter.extractCadence('18x 1min, 65% FTP,'), equals(0));
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  test('Ramp', () {
+    WorkoutConverter converter = WorkoutConverter();
+    expect(converter.parseRamp('10min from 25 to 75% FTP'), equals({25, 75}));
   });
 }
