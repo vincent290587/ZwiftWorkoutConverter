@@ -5,6 +5,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:file_picker_cross/file_picker_cross.dart';
 import 'package:flutter/material.dart';
 
+import 'WorkoutConverter.dart';
+
 void main() {
   runApp(MyApp());
 }
@@ -62,7 +64,9 @@ class _MyHomePageState extends State<MyHomePage> {
     //print('Second text field: ${controller.text}');
 
     setState(() {
-      _convertedContent = controller.text;
+      WorkoutConverter converter = WorkoutConverter();
+      converter.parseWorkout(controller.text);
+      _convertedContent = converter.convertToZwift();
     });
   }
 
@@ -84,11 +88,15 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _onConvertPressed() async {
 
-    Uint8List _bytes = Uint8List(3);
+    WorkoutConverter converter = WorkoutConverter();
+    converter.parseWorkout(controller.text);
+    _convertedContent = converter.convertToZwift();
+
+    Uint8List _bytes = Uint8List.fromList(_convertedContent.codeUnits);
 
     FilePickerCross myFile  = FilePickerCross(_bytes,
         path: '',
-        type: FileTypeCross.any,
+        type: FileTypeCross.custom,
         fileExtension: 'zwo');
 
     // for sharing to other apps you can also specify optional `text` and `subject`

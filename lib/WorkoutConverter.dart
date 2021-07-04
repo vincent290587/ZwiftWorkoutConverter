@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
+
 class WorkoutConverter {
 
   List<Interval> intervals = [];
@@ -7,33 +9,58 @@ class WorkoutConverter {
   WorkoutConverter();
 
   void parseWorkout(String input) {
-    String res = '';
+
+    if (input.isEmpty) {
+      return;
+    }
+
     LineSplitter ls = new LineSplitter();
     List<String> lines = ls.convert(input);
 
     intervals.clear();
 
-    int parsed = 0;
-    do {
-      List<String> linePair = lines.sublist(0, 1);
-      parsed = parseLinesPair(linePair);
-      lines.removeAt(0);
-      if (parsed == 2) {
+    try {
+      int parsed = 0;
+      do {
+        List<String> linePair = [lines.first];
+        if (lines.length > 1) {
+          linePair = lines.sublist(0, 1);
+        }
+        parsed = parseLinesPair(linePair);
         lines.removeAt(0);
-      }
-    } while (parsed > 0);
+        if (parsed == 2) {
+          lines.removeAt(0);
+        }
+      } while (parsed > 0 && lines.isNotEmpty);
+    } catch(e) {
+      print(e.toString());
+    }
 
     return;
   }
 
   String convertToZwift() {
-    String res = '';
-    for (var interval in intervals) {
+    String start = '';
 
-      res += interval.toZwiftString();
+    start = "<workout_file>\n";
+    start += "    <author>Vincent Golle</author>\n";
+    start += "    <name>";
+    start += "name_placeholder";
+    start += "</name>\n";
+    start += "    <description></description>\n";
+    start += "    <sportType>bike</sportType>\n";
+    start += "    <tags>\n";
+    start += "    </tags>\n";
+    start += "    <workout>\n";
+
+    for (var interval in intervals) {
+      start += interval.toZwiftString();
     }
 
-    return res;
+    start += "    </workout>\n";
+    start += "</workout_file>\n";
+
+    return start;
   }
 
   int parseLinesPair(List<String> line_pair) {
@@ -193,21 +220,45 @@ class SteadyState implements Interval {
 
   @override
   String toZwiftString() {
-    // TODO: implement toZwiftString
-    throw UnimplementedError();
+    String res = '';
+    String power_on = percentToString(start_power).toStringAsFixed(2);
+    if (start_power==0) {
+      // free ride
+      res = "        <FreeRide Duration=\"$duration\" FlatRoad=\"1\"/>\n";
+    } else if(cadence == 0) {
+      res = "        <SteadyState Duration=\"$duration\" Power=\"$power_on\"/>\n";
+    } else {
+      res = "        <SteadyState Duration=\"$duration\" Power=\"$power_on\" Cadence=\"$cadence\"/>\n";
+    }
+    return res;
   }
 }
 
 class Repetition implements Interval {
 
+  int reps;
   List<SteadyState> intervals;
 
-  Repetition(int reps, this.intervals);
+  Repetition(this.reps, this.intervals);
 
   @override
   String toZwiftString() {
-    // TODO: implement toZwiftString
-    throw UnimplementedError();
+    String res = '';
+    int on = intervals.first.duration;
+    int off = intervals.last.duration;
+    String power_on = percentToString(intervals.first.start_power).toStringAsFixed(2);
+    String power_off = percentToString(intervals.last.start_power).toStringAsFixed(2);
+    int cad_on = intervals.first.cadence;
+    int cad_off = intervals.last.cadence;
+    res = "        <IntervalsT Repeat=\"$reps\" OnDuration=\"$on\" OffDuration=\"$off\" OnPower=\"$power_on\" OffPower=\"$power_off\"";
+    if(cad_on > 0) {
+      res += " Cadence=\"$cad_on\"";
+    }
+    if (cad_off > 0) {
+      res += " CadenceResting=\"$cad_off\"";
+    }
+    res += "/>\n";
+    return res;
   }
 }
 
@@ -225,7 +276,18 @@ class Ramp implements Interval {
 
   @override
   String toZwiftString() {
-    // TODO: implement toZwiftString
-    throw UnimplementedError();
+    String res = '';
+    String power0 = percentToString(start_power).toStringAsFixed(2);
+    String power1 = percentToString(stop_power).toStringAsFixed(2);
+    if(cadence == 0) {
+      res = "        <Ramp Duration=\"$duration\" PowerLow=\"$power0\" PowerHigh=\"$power1\"/>\n";
+    } else {
+      res = "        <Ramp Duration=\"$duration\" PowerLow=\"$power0\" PowerHigh=\"$power1\" Cadence=\"$cadence\"/>\n";
+    }
+    return res;
   }
+}
+
+double percentToString(int input) {
+  return input / 100.0;
 }
