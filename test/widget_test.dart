@@ -48,9 +48,13 @@ void main() {
       WorkoutConverter converter = WorkoutConverter();
       expect(converter.extractPower('3min @ 90rpm, 65% FTP'), equals(65));
     });
-    test('Power_rep', () {
+    test('Power_rep1', () {
       WorkoutConverter converter = WorkoutConverter();
       expect(converter.extractPower('5x 1min @ 100rpm, 65% FTP,'), equals(65));
+    });
+    test('Power_rep2', () {
+      WorkoutConverter converter = WorkoutConverter();
+      expect(converter.extractPower('3x 30sec @ 115% FTP,'), equals(115));
     });
   });
 

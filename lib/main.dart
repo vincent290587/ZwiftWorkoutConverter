@@ -59,14 +59,19 @@ class _MyHomePageState extends State<MyHomePage> {
   //int _counter = 0;
   final TextEditingController controller = TextEditingController();
   String _convertedContent = "Converted workout";
+  bool upgrade_ramps = false;
+
+  void _refreshText() {
+    WorkoutConverter converter = WorkoutConverter();
+    converter.parseWorkout(upgrade_ramps, controller.text);
+    _convertedContent = converter.convertToZwift();
+  }
 
   void _printLatestValue() {
     //print('Second text field: ${controller.text}');
 
     setState(() {
-      WorkoutConverter converter = WorkoutConverter();
-      converter.parseWorkout(controller.text);
-      _convertedContent = converter.convertToZwift();
+      _refreshText();
     });
   }
 
@@ -88,9 +93,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _onConvertPressed() async {
 
-    WorkoutConverter converter = WorkoutConverter();
-    converter.parseWorkout(controller.text);
-    _convertedContent = converter.convertToZwift();
+    _refreshText();
 
     Uint8List _bytes = Uint8List.fromList(_convertedContent.codeUnits);
 
@@ -102,14 +105,6 @@ class _MyHomePageState extends State<MyHomePage> {
     // for sharing to other apps you can also specify optional `text` and `subject`
     await myFile.exportToStorage();
 
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      //_counter++;
-    });
   }
 
   @override
@@ -125,49 +120,73 @@ class _MyHomePageState extends State<MyHomePage> {
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
+        actions: [
+          Text(
+            'Upgrade ramps',
+            textAlign: TextAlign.center,
+          ),
+          Switch(
+            value: upgrade_ramps,
+            activeColor: Colors.white,
+            activeTrackColor: Colors.black54,
+            inactiveTrackColor: Colors.black54,
+            onChanged: (bool newValue) {
+              setState(() {
+                upgrade_ramps = newValue;
+                _refreshText();
+              });
+            },
+          )
+        ],
       ),
       body: Row(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
         children: [
-          Container(
-            // Column is also a layout widget. It takes a list of children and
-            // arranges them vertically. By default, it sizes itself to fit its
-            // children horizontally, and tries to be as tall as its parent.
-            //
-            // Invoke "debug painting" (press "p" in the console, choose the
-            // "Toggle Debug Paint" action from the Flutter Inspector in Android
-            // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-            // to see the wireframe for each widget.
-            //
-            // Column has various properties to control how it sizes itself and
-            // how it positions its children. Here we use mainAxisAlignment to
-            // center the children vertically; the main axis here is the vertical
-            // axis because Columns are vertical (the cross axis would be
-            // horizontal).
-            //mainAxisAlignment: MainAxisAlignment.center,
-            width: 600.0,
-            height: 800.0,
-            child: TextField(
-                textInputAction: TextInputAction.newline,
-                keyboardType: TextInputType.multiline,
-                minLines: null,
-                maxLines: null,  // If this is null, there is no limit to the number of lines, and the text container will start with enough vertical space for one line and automatically grow to accommodate additional lines as they are entered.
-                expands: true,
-                controller: controller,
-                // onChanged: (text) {
-                //   setState(() {
-                //     _convertedContent = text;
-                //   });
-                // },
-              ),
+          Flexible(
+            flex: 1,
+            child: Container(
+              // Column is also a layout widget. It takes a list of children and
+              // arranges them vertically. By default, it sizes itself to fit its
+              // children horizontally, and tries to be as tall as its parent.
+              //
+              // Invoke "debug painting" (press "p" in the console, choose the
+              // "Toggle Debug Paint" action from the Flutter Inspector in Android
+              // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
+              // to see the wireframe for each widget.
+              //
+              // Column has various properties to control how it sizes itself and
+              // how it positions its children. Here we use mainAxisAlignment to
+              // center the children vertically; the main axis here is the vertical
+              // axis because Columns are vertical (the cross axis would be
+              // horizontal).
+              //mainAxisAlignment: MainAxisAlignment.center,
+              // width: 600.0,
+              // height: 800.0,
+              child: TextField(
+                  textInputAction: TextInputAction.newline,
+                  keyboardType: TextInputType.multiline,
+                  minLines: null,
+                  maxLines: null,  // If this is null, there is no limit to the number of lines, and the text container will start with enough vertical space for one line and automatically grow to accommodate additional lines as they are entered.
+                  expands: true,
+                  controller: controller,
+                  // onChanged: (text) {
+                  //   setState(() {
+                  //     _convertedContent = text;
+                  //   });
+                  // },
+                ),
+            ),
           ),
           VerticalDivider(),
-          Container(
-            width: 600.0,
-            height: 800.0,
-            child: Text(
-              _convertedContent,
+          Flexible(
+            flex: 2,
+            child: Container(
+              // width: 600.0,
+              // height: 800.0,
+              child: Text(
+                _convertedContent,
+              ),
             ),
           ),
         ],
@@ -175,7 +194,7 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: _onConvertPressed,
         tooltip: 'Increment',
-        child: Icon(Icons.wifi_protected_setup_sharp),
+        child: Icon(Icons.save_rounded),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }

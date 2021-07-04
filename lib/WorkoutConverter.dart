@@ -1,14 +1,18 @@
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 class WorkoutConverter {
 
+  bool upgrade_ramps = false;
   List<Interval> intervals = [];
 
   WorkoutConverter();
 
-  void parseWorkout(String input) {
+  void parseWorkout(bool up_ramps, String input) {
+
+    upgrade_ramps = up_ramps;
 
     if (input.isEmpty) {
       return;
@@ -32,8 +36,9 @@ class WorkoutConverter {
           lines.removeAt(0);
         }
       } while (parsed > 0 && lines.isNotEmpty);
-    } catch(e) {
+    } catch(e, s) {
       print(e.toString());
+      //print(s.toString());
     }
 
     return;
@@ -102,14 +107,28 @@ class WorkoutConverter {
   }
 
   void addSingleBlock(String input) {
-    String res = '';
     int lapse = extractTime(input);
     int cad = extractCadence(input);
 
     if (input.contains('from')) {
 
       var power = this.parseRamp(input);
-      intervals.add(Ramp(lapse,power,cad));
+
+      if (upgrade_ramps && lapse >= 10 && lapse <= 45) {
+
+        int cpower = power.first;
+        int nb_intervals = (lapse/10).floor();
+        int d_time = (lapse/nb_intervals).ceil();
+        int d_power = ((power.last - power.first)/(nb_intervals-1)).ceil();
+        int cur_lapse = 0;
+        do {
+          intervals.add(SteadyState(d_time, cpower, cad));
+          cpower += d_power;
+          cur_lapse += d_time;
+        } while(cur_lapse < lapse);
+      } else {
+        intervals.add(Ramp(lapse, power, cad));
+      }
 
       return;
     }
@@ -158,7 +177,7 @@ class WorkoutConverter {
 
   int extractPower(String input) {
     if (input.contains('FTP')) {
-      final regex = RegExp(r'^.*,\s([0-9]+)%\sFTP.*$');
+      final regex = RegExp(r'^.*\s([0-9]+)%\sFTP.*$');
       final match = regex.firstMatch(input);
 
       final reps = match!.group(1);
