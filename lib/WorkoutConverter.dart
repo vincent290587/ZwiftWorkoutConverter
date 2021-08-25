@@ -28,7 +28,7 @@ class WorkoutConverter {
       do {
         List<String> linePair = [lines.first];
         if (lines.length > 1) {
-          linePair = lines.sublist(0, 1);
+          linePair = lines.sublist(0, 2);
         }
         parsed = parseLinesPair(linePair);
         lines.removeAt(0);
