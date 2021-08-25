@@ -44,6 +44,16 @@ class WorkoutConverter {
     return;
   }
 
+  String convertToICU() {
+    String start = '';
+
+    for (var interval in intervals) {
+      start += interval.toIcuString();
+    }
+
+    return start;
+  }
+
   String convertToZwift() {
     String start = '';
 
@@ -227,6 +237,8 @@ class WorkoutConverter {
 abstract class Interval {
 
   String toZwiftString();
+
+  String toIcuString();
 }
 
 class SteadyState implements Interval {
@@ -248,6 +260,20 @@ class SteadyState implements Interval {
       res = "        <SteadyState Duration=\"$duration\" Power=\"$power_on\"/>\n";
     } else {
       res = "        <SteadyState Duration=\"$duration\" Power=\"$power_on\" Cadence=\"$cadence\"/>\n";
+    }
+    return res;
+  }
+
+  @override
+  String toIcuString() {
+    String res = '\n';
+    if (start_power==0) {
+      // free ride
+      res += "- ${duration}s ${start_power}%\n";
+    } else if(cadence == 0) {
+      res += "- ${duration}s ${start_power}%\n";
+    } else {
+      res += "- ${duration}s ${start_power}% cadence ${cadence}rpm\n";
     }
     return res;
   }
@@ -279,6 +305,31 @@ class Repetition implements Interval {
     res += "/>\n";
     return res;
   }
+
+  @override
+  String toIcuString() {
+    String res = '\n';
+    int on = intervals.first.duration;
+    int off = intervals.last.duration;
+    int cad_on = intervals.first.cadence;
+    int cad_off = intervals.last.cadence;
+    res += "${reps}x\n";
+
+    res += "- ${on}s ${intervals.first.start_power}%";
+    if(cad_on > 0) {
+      res += " cadence ${cad_on}rpm";
+    }
+    res += "\n";
+
+    res += "- ${off}s ${intervals.last.start_power}%";
+    if (cad_off > 0) {
+      res += " cadence ${cad_off}rpm";
+    }
+    res += "\n";
+    res += "\n";
+
+    return res;
+  }
 }
 
 class Ramp implements Interval {
@@ -302,6 +353,17 @@ class Ramp implements Interval {
       res = "        <Ramp Duration=\"$duration\" PowerLow=\"$power0\" PowerHigh=\"$power1\"/>\n";
     } else {
       res = "        <Ramp Duration=\"$duration\" PowerLow=\"$power0\" PowerHigh=\"$power1\" Cadence=\"$cadence\"/>\n";
+    }
+    return res;
+  }
+
+  @override
+  String toIcuString() {
+    String res = '\n';
+    if(cadence == 0) {
+      res += "- ${duration}s ramp ${start_power}-${stop_power}%\n";
+    } else {
+      res += "- ${duration}s ramp ${start_power}-${stop_power}% cadence ${cadence}rpm\n";
     }
     return res;
   }

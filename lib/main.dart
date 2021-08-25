@@ -58,11 +58,19 @@ class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController controller = TextEditingController();
   String _convertedContent = "Converted workout";
   bool upgrade_ramps = false;
+  bool outputICU = false;
 
   void _refreshText() {
     WorkoutConverter converter = WorkoutConverter();
     converter.parseWorkout(upgrade_ramps, controller.text);
-    _convertedContent = converter.convertToZwift();
+
+    if (outputICU) {
+
+      _convertedContent = converter.convertToICU();
+    } else {
+
+      _convertedContent = converter.convertToZwift();
+    }
   }
 
   void _printLatestValue() {
@@ -134,7 +142,23 @@ class _MyHomePageState extends State<MyHomePage> {
                 _refreshText();
               });
             },
-          )
+          ),
+          Text(
+            'ICU format',
+            textAlign: TextAlign.center,
+          ),
+          Switch(
+            value: outputICU,
+            activeColor: Colors.white,
+            activeTrackColor: Colors.black54,
+            inactiveTrackColor: Colors.black54,
+            onChanged: (bool newValue) {
+              setState(() {
+                outputICU = newValue;
+                _refreshText();
+              });
+            },
+          ),
         ],
       ),
       body: Row(
@@ -182,7 +206,7 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Container(
               // width: 600.0,
               // height: 800.0,
-              child: Text(
+              child: SelectableText(
                 _convertedContent,
               ),
             ),
