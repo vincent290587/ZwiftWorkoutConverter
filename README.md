@@ -6,7 +6,22 @@ This converter is a tool for converting textual workouts to a Zwift .zwo format.
 
 ![](doc/Screenshot.png)
 
+## Running the program
+
+You'll need Flutter (from Google) in order to compile/run:
+
+<https://docs.flutter.dev/get-started/install>
+
+When flutter is installed on your system, execute the following commands in the repo:
+
+- flutter clean
+- flutter pub get
+- flutter build windows
+- flutter run -d windows
+
 ## Installing from MSIX installer
+
+The MSIX installer need only created for distributing the app
 
 First you'll need to install the certificate.  
 For that, please follow the instructions at the following link:  
